@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Snake</title>
+	<link rel="stylesheet" href="style.css">
+	<link rel="stylesheet" href="libs/mdl/icon.css">
+	<script type="text/javascript" src="libs/jquery-3.3.1.min.js"></script>
+	<script type="text/javascript" src="libs/jquery-ui.min.js"></script>
+</head>
+<body>
+	<div id="wrapper"> 
+		<div id="main-block">
+			<div id="left-panel">
+				<canvas id="main-field"></canvas>
+			</div>
+			<div id="right-panel">
+				<canvas id="vision-field"></canvas> 
+				<div id="control">
+					<div></div>
+					<div id="direction-top" class="direction"><i class="material-icons">arrow_upward</i></div>
+					<div></div>
+					<div id="direction-left" class="direction"><i class="material-icons">arrow_back</i></div>
+					<div id="direction-none" class="direction"><i class="material-icons">clear</i></div>
+					<div id="direction-right" class="direction"><i class="material-icons">arrow_forward</i></div>
+					<div></div>
+					<div id="direction-down" class="direction"><i class="material-icons">arrow_downward</i></div>
+					<div></div>
+				</div>
+			</div>
+		</div>
+	</div>	
+	<div id="settings-button">
+		<i class="material-icons">settings</i>
+		<div id="settings-window"> 
+			<div id="settings-content">
+				<div id="settings-content2">
+					<div id="s_rotate" class="setting">
+						<span>Rotate data matrix</span>
+					</div>
+					<div id="s_reverse" class="setting">
+						<span>Reverse data matrix</span>
+					</div>
+					<div id="s_save" class="setting">
+						<span>Auto save</span>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div id="overlay"></div>
+	<script type="text/javascript" src="main.js"></script>	
+</body>
+</html>

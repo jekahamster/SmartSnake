@@ -1,0 +1,167 @@
+* {padding: 0; margin: 0;}
+
+body {
+	width: 100vw;
+	height: 100vh;
+	background: linear-gradient(45deg, #B066FE, #63E2FF);
+}
+
+#wrapper {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	width: 100%;
+	height: 100%;
+}
+
+#main-block {
+	width: 90%;
+	height: 70%;
+	background: rgba(255, 255, 255, 0.6);
+	border-radius: 30px;
+	display: grid;
+	grid-template-columns: 55% 45fr;
+}
+
+#left-panel, #right-panel {
+	height: 100%;
+	float: left;
+	display: flex;
+	align-items: center;
+}
+
+#left-panel {
+	justify-content: center;
+}
+
+#right-panel {
+	flex-direction: column;
+	justify-content: space-around;
+}
+
+#main-field {
+	width: 600px;
+	height: 600px;
+	background-color: black;
+}
+
+#vision-field {
+	width: 240px;
+	height: 240px;
+	background-color: black;
+}
+
+#control {
+	width: 200px;
+	height: 200px;
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+}
+
+.direction {
+	width: 100%;
+	height: 100%;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	user-select: none;
+	
+}
+
+.direction > i {
+	width: 100%;
+	height: 100%;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	border: 3px solid black;
+	background: #E6E6E6FF;
+	border-radius: 100%;
+	font-size: 2em;
+	cursor: pointer;
+}
+
+#direction-none > i {
+	width: 60%;
+	height: 60%;
+	font-size: 1.2em;
+}
+
+.direction:hover > i{
+	transition: all .5s ease;
+	background: #c9c7c7;
+}
+
+.direction:active > i {
+	transition: all .05s ease;
+	background-color: #FFFF96;
+
+}
+
+#settings-button {
+	position: absolute;
+	left: 10px;
+	top: 10px;
+	width: 50px;
+	height: 50px;
+	font-size: 2em;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	background-color: rgba(255, 255, 255, 0.6);
+	border-radius: 100%;
+	cursor: pointer;
+	user-select: none;
+	overflow: none;
+	outline: none;
+	z-index: 6;
+}
+
+#settings-button:hover {
+	background-color: rgba(255, 255, 255, 0.9);
+}
+
+#settings-window {
+	height: 0px;
+	width: 0px;
+	background-color: #f2efef;
+	position: absolute;
+	border-radius: 10px;
+	cursor: default;
+}
+
+#settings-content {
+	width: 100%;
+	height: 100%;
+	display: none;
+
+}
+
+#settings-content2 {
+	height: 100%;
+	width: 100%;
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-around;
+	align-items: space-around;
+}
+
+.setting {
+	width: 25%;
+	height: 25%;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	font-size: 0.5em;
+}
+
+#overlay {
+	height: 100vh;
+	width: 100vw;
+	position: fixed;
+	left: 0;
+	top: 0;
+	display: none;
+	z-index: 5;
+	background-color: rgba(0, 0, 0, .5);
+}
