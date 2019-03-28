@@ -2,14 +2,41 @@ $(() => {
 	$("#settings-button").click(openSettings);
 	$("#overlay").click(closeSettings);
 
-	var canvas = document.getElementById("main-field");
-	var ctx = canvas.getContext('2d');
-	
+	var mcanvas 	= document.getElementById("main-field");
+	var mctx 		= mcanvas.getContext('2d');
+	var vcanvas 	= document.getElementById("vision-field");
+	var vctx 		= vcanvas.getContext('2d');
+
+	var cell_x 		= 60;
+	var cell_y 		= 60;
+	var cell_size 	= 10;
+	mcanvas.width 	= cell_x*cell_size;
+	mcanvas.height 	= cell_y*cell_size;
+
+	const visionR 	= 9;
+	var vcell_x 	= visionR*2+1;
+	var vcell_y 	= visionR*2+1;
+	var vcell_size 	= 10;
+	vcanvas.width 	= vcell_x*vcell_size;
+	vcanvas.height 	= vcell_y*vcell_size;
+
+	drawGrid(mctx, cell_x, cell_y, cell_size);
+	drawGrid(vctx, vcell_x, vcell_y, vcell_size);
+
+	var gameLoop = setInterval(function () {
+		console.log("Game Loop");
+		clearTimeout(gameLoop);
+	}, 2000);
+
 });
 
 
 function Snake() {
 	this.body = [[3, 0], [2, 0], [1, 0], [0, 0]];
+	this.size = this.body.length;
+	this.color = [Math.round(Math.random() * 255), 
+				  Math.round(Math.random() * 255),
+				  Math.round(Math.random() * 255)];
 }
 
 
@@ -17,7 +44,27 @@ function Snake() {
 
 
 
+function drawGrid(ctx, cell_x, cell_y, cell_size) {
+	ctx.strokeStyle = "white";
+	ctx.lineWidth = "1";
+	for (var i = cell_size; i < cell_x*cell_size; i += cell_size)
+	{
+		ctx.beginPath();
+		ctx.moveTo(i, 0);
+		ctx.lineTo(i, cell_y*cell_size);
+		ctx.stroke();
+		ctx.closePath();
+	}
 
+	for (var i = cell_size; i < cell_y*cell_size; i += cell_size)
+	{
+		ctx.beginPath();
+		ctx.moveTo(0, i);
+		ctx.lineTo(cell_x*cell_size, i);
+		ctx.stroke();
+		ctx.closePath();
+	}
+}
 
 function Game() {
 	this.createGameField = function (n, m) {
