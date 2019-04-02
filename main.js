@@ -15,7 +15,7 @@ $(() => {
 	mcanvas.height 	= cell_y*cell_size;
 
 	// vision screen
-	const visionR 	= 9;
+	const visionR 	= 4;
 	var vcell_x 	= visionR*2+1;
 	var vcell_y 	= visionR*2+1;
 	var vcell_size 	= 10;
@@ -25,30 +25,26 @@ $(() => {
 
 
 	var g = new Game;
-	g.createGameField(cell_x, cell_y);
+	g.createGameField(cell_y, cell_x);
 	
-	var snake = new Snake(g, cell_size);
+	var snake = new Snake(visionR, g, cell_size);
 	var apple = new Apple(cell_size, cell_x, cell_y, g);
 	apple.generate();
 
 
 
 	snake.draw(mctx);
-	snake.step("right");
-	snake.step("right");
-	snake.step("right");
-	snake.append();
-	snake.step("right");
 
 	mctx.clearRect(0, 0, cell_x*cell_size, cell_y*cell_size);
-	drawGrid(mctx, cell_x, cell_y, cell_size);
-	drawGrid(vctx, vcell_x, vcell_y, vcell_size);
 	snake.draw(mctx);
 	apple.draw(mctx);
-
+	snake.updateVMatrix();
+	console.log(snake.vmatrix);
 	console.log(g.matrix);
+	snake.drawVMatrix(vctx, vcell_size);
 
-
+	drawGrid(mctx, cell_x, cell_y, cell_size);
+	drawGrid(vctx, vcell_x, vcell_y, vcell_size);
 	var gameLoop = setInterval(function () {
 		console.log("Game Loop");
 		clearTimeout(gameLoop);
@@ -95,9 +91,7 @@ function Apple(size, cell_x, cell_y, game) {
 
 
 
-
-
-function Snake(game, cell_size) {
+function Snake(visionR, game, cell_size) {
 	this.name 		= null;
 	this.body 		= [[3, 0], [2, 0], [1, 0], [0, 0]];
 	this.size 		= this.body.length;
@@ -106,8 +100,67 @@ function Snake(game, cell_size) {
 				  	   Math.round(Math.random() * 255)];
 	this.cell_size = cell_size;
 	this.game = game;
+	this.visionR = visionR
+	this.vmatrix = new Array(visionR*2+1);
+	
+	for (let i = 0; i < visionR*2+1; i++)
+		this.vmatrix[i] = new Array(visionR*2+1);
+
+	for (let i = 0; i < visionR*2+1; i++)
+		for (let j = 0; j < visionR*2+1; j++)
+			this.vmatrix[i][j] = 0;
 
 	game.updateGameField(this.body, 1);
+
+	this.updateVMatrix = function () {
+
+		// top bound
+		if (this.body[0][1] - this.visionR < 0)
+		{
+			let empty_top = this.visionR - this.body[0][1];
+			for (let i = 0; i < empty_top; i++)
+				for (let j = 0; j < this.visionR*2+1; j++)
+					this.vmatrix[i][j] = -1;
+		}
+		// right bound
+		if (this.body[0][0] - this.visionR < 0)
+		{
+			let empty_left = this.visionR - this.body[0][0];
+			for (let i = 0; i < this.visionR*2+1; i++)
+				for (let j = 0; j < empty_left; j++)
+					this.vmatrix[i][j] = -1;
+		}
+		// bottom bound
+		if (this.body[0][1] + this.visionR > this.game.matrix.length-1)
+		{
+			let empty_bottom = this.visionR + this.body[0][1]+1 - this.game.matrix.length;
+			for (let i = 0; i < empty_bottom; i++)
+				for (let j = 0; j < this.visionR*2+1; j++)
+					this.vmatrix[this.visionR*2+1-i-1][j] = -1;
+		}
+		// left bound 
+		if (this.body[0][0] + this.visionR > this.game.matrix[0].length-1)
+		{
+			let empty_right = this.visionR + this.body[0][0]+1 - this.game.matrix[0].length;
+			for (let i = 0; i < this.visionR*2+1; i++)
+				for (let j = 0; j < empty_right; j++)
+					this.vmatrix[i][this.visionR*2+1-j-1] = -1;
+		}
+	}
+
+	this.drawVMatrix = function (ctx, cell_size) {
+		for (let i = 0; i < this.vmatrix.length; i++)
+			for (let j = 0; j < this.vmatrix[i].length; j++)
+			{
+				if (this.vmatrix[i][j] == -1)
+					ctx.fillStyle = "blue";
+				else if (this.vmatrix[i][j] == 0)
+					ctx.fillStyle = "white";
+
+				ctx.fillRect(j*cell_size, i*cell_size, cell_size, cell_size);
+			}
+		
+	}
 
 	this.draw = function (ctx) {
 		ctx.fillStyle = "rgb("+
