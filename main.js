@@ -8,24 +8,28 @@ $(() => {
 	var vctx 		= vcanvas.getContext('2d');
 
 	// main screen
-	var cell_x 		= 60;
-	var cell_y 		= 60;
-	var cell_size 	= 10;
+	var cell_x 		= 30;
+	var cell_y 		= 30;
+	var cell_size 	= 20;
 	mcanvas.width 	= cell_x*cell_size;
 	mcanvas.height 	= cell_y*cell_size;
 
 	// vision screen
-	const visionR 	= 4;
+	const visionR 	= 9;
 	var vcell_x 	= visionR*2+1;
 	var vcell_y 	= visionR*2+1;
 	var vcell_size 	= 10;
 	vcanvas.width 	= vcell_x*vcell_size;
 	vcanvas.height 	= vcell_y*vcell_size;
-	
-
 
 	var g = new Game;
-	g.createGameField(cell_y, cell_x);
+	// g.createGameField(cell_y, cell_x);
+	g.loadGameField("field1.json");
+	console.log(g.barriers);
+	cell_y = g.matrix.length;
+	cell_x = g.matrix[0].length;
+	mcanvas.width 	= cell_x*cell_size;
+	mcanvas.height 	= cell_y*cell_size;
 	
 	var snake = new Snake(visionR, g, cell_size);
 	var apple = new Apple(cell_size, cell_x, cell_y, g);
@@ -36,6 +40,7 @@ $(() => {
 	snake.draw(mctx);
 
 	mctx.clearRect(0, 0, cell_x*cell_size, cell_y*cell_size);
+	g.drawBarriers(mctx, cell_size);
 	snake.draw(mctx);
 	apple.draw(mctx);
 	snake.updateVMatrix();
@@ -49,6 +54,21 @@ $(() => {
 		console.log("Game Loop");
 		clearTimeout(gameLoop);
 	}, 2000);
+
+	$(".direction").click(function () {
+		mctx.clearRect(0, 0, cell_x*cell_size, cell_y*cell_size);
+		g.drawBarriers(mctx, cell_size);
+		snake.step( $(this).attr("data-direction") );
+		snake.draw(mctx);
+		apple.draw(mctx);
+		snake.updateVMatrix();
+		console.log(snake.vmatrix);
+		console.log(g.matrix);
+		snake.drawVMatrix(vctx, vcell_size);
+		drawGrid(mctx, cell_x, cell_y, cell_size);
+		drawGrid(vctx, vcell_x, vcell_y, vcell_size);
+
+	});
 
 });
 
@@ -81,8 +101,8 @@ function Apple(size, cell_x, cell_y, game) {
 				this.color[0]+", "+
 				this.color[1]+", "+
 				this.color[2]+")";
-		ctx.fillRect(this.x*this.size, 
-					 this.y*this.size, 
+		ctx.fillRect(this.y*this.size, 
+					 this.x*this.size, 
 					 this.size, 
 					 this.size);
 	}
@@ -114,10 +134,22 @@ function Snake(visionR, game, cell_size) {
 
 	this.updateVMatrix = function () {
 
+		var vx_top 		= 0;
+		var vy_top 		= 0;
+		var vx_bottom 	= this.visionR*2;
+		var vy_bottom 	= this.visionR*2;
+
+		var mx_top 		= this.body[0][0] - visionR;
+		var my_top 		= this.body[0][1] - visionR;
+		var mx_bottom 	= this.body[0][0] + visionR;
+		var my_bottom 	= this.body[0][1] + visionR;
+
 		// top bound
 		if (this.body[0][1] - this.visionR < 0)
 		{
 			let empty_top = this.visionR - this.body[0][1];
+			vy_top += empty_top;
+			my_top += empty_top;
 			for (let i = 0; i < empty_top; i++)
 				for (let j = 0; j < this.visionR*2+1; j++)
 					this.vmatrix[i][j] = -1;
@@ -126,6 +158,8 @@ function Snake(visionR, game, cell_size) {
 		if (this.body[0][0] - this.visionR < 0)
 		{
 			let empty_left = this.visionR - this.body[0][0];
+			vx_top += empty_left;
+			mx_top += empty_left;
 			for (let i = 0; i < this.visionR*2+1; i++)
 				for (let j = 0; j < empty_left; j++)
 					this.vmatrix[i][j] = -1;
@@ -134,6 +168,8 @@ function Snake(visionR, game, cell_size) {
 		if (this.body[0][1] + this.visionR > this.game.matrix.length-1)
 		{
 			let empty_bottom = this.visionR + this.body[0][1]+1 - this.game.matrix.length;
+			vy_bottom -= empty_bottom;
+			my_bottom -= empty_bottom;
 			for (let i = 0; i < empty_bottom; i++)
 				for (let j = 0; j < this.visionR*2+1; j++)
 					this.vmatrix[this.visionR*2+1-i-1][j] = -1;
@@ -142,21 +178,36 @@ function Snake(visionR, game, cell_size) {
 		if (this.body[0][0] + this.visionR > this.game.matrix[0].length-1)
 		{
 			let empty_right = this.visionR + this.body[0][0]+1 - this.game.matrix[0].length;
+			vx_bottom -= empty_right;
+			mx_bottom -= empty_right;
 			for (let i = 0; i < this.visionR*2+1; i++)
 				for (let j = 0; j < empty_right; j++)
 					this.vmatrix[i][this.visionR*2+1-j-1] = -1;
 		}
+
+		console.log(vx_top, vy_top, vx_bottom, vy_bottom);
+		console.log(mx_top, my_top, mx_bottom, my_bottom);
+
+		
+
+		for (let vi = vy_top, mi = my_top; vi <= vy_bottom; vi++, mi++)
+			for (let vj = vx_top, mj = mx_top; vj <= vx_bottom; vj++, mj++)
+					this.vmatrix[vi][vj] = this.game.matrix[mi][mj];
 	}
 
+
 	this.drawVMatrix = function (ctx, cell_size) {
+		let colors = {
+			"-1": 	"blue",
+			"0": 	"white",
+			"1": 	"green",
+			"2": 	"yellow",
+			"3": 	"red",
+		}
 		for (let i = 0; i < this.vmatrix.length; i++)
 			for (let j = 0; j < this.vmatrix[i].length; j++)
 			{
-				if (this.vmatrix[i][j] == -1)
-					ctx.fillStyle = "blue";
-				else if (this.vmatrix[i][j] == 0)
-					ctx.fillStyle = "white";
-
+				ctx.fillStyle = colors[this.vmatrix[i][j]];
 				ctx.fillRect(j*cell_size, i*cell_size, cell_size, cell_size);
 			}
 		
@@ -247,6 +298,9 @@ function Snake(visionR, game, cell_size) {
 }
 
 function Game() {
+	this.matrix;
+	this.barriers = [];
+
 	this.createGameField = function (n, m) {
 		this.matrix = new Array(n);
 		for (let i = 0; i < n; i++)
@@ -273,6 +327,7 @@ function Game() {
 		this.matrix = new Array(n);
 		for (let i = 0; i < n; i++)
 			this.matrix[i] = inlineField.splice(0, m);
+		this.findBarriers();
 	}
 
 	this.saveGameField = function (fileName) {
@@ -313,6 +368,24 @@ function Game() {
 		{
 			this.matrix[coords[i][1]][coords[i][0]] = val; 
 		}
+	}
+
+	this.findBarriers = function () {
+		for (let i = 0; i < this.matrix.length; i++)
+			for (let j = 0; j < this.matrix[0].length; j++)
+			{
+				if (this.matrix[i][j] == -1)
+					this.barriers[this.barriers.length] = [j, i];
+			}
+	}
+
+	this.drawBarriers = function (ctx, cell_size) {
+		for (let i = 0; i < this.barriers.length; i++)
+		{
+			ctx.fillStyle = "blue";
+			ctx.fillRect(this.barriers[i][0]*cell_size, this.barriers[i][1]*cell_size, cell_size, cell_size);
+		}
+
 	}
 }
 
