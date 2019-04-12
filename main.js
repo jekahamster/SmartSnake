@@ -1,3 +1,6 @@
+var vector 			= "right";
+var pressed_key;
+
 $(() => {
 	$("#settings-button").click(openSettings);
 	$("#overlay").click(closeSettings);
@@ -6,7 +9,8 @@ $(() => {
 	var mctx 		= mcanvas.getContext('2d');
 	var vcanvas 	= document.getElementById("vision-field");
 	var vctx 		= vcanvas.getContext('2d');
-
+	
+	var mode 		= "game";
 	// main screen
 	var cell_x 		= 30;
 	var cell_y 		= 30;
@@ -22,56 +26,110 @@ $(() => {
 	vcanvas.width 	= vcell_x*vcell_size;
 	vcanvas.height 	= vcell_y*vcell_size;
 
-	var g = new Game;
-	// g.createGameField(cell_y, cell_x);
-	g.loadGameField("field1.json");
-	console.log(g.barriers);
-	cell_y = g.matrix.length;
-	cell_x = g.matrix[0].length;
-	mcanvas.width 	= cell_x*cell_size;
-	mcanvas.height 	= cell_y*cell_size;
-	
+	var g = new Game();
+	g.createGameField(cell_y, cell_x);
 	var snake = new Snake(visionR, g, cell_size);
 	var apple = new Apple(cell_size, cell_x, cell_y, g);
-	apple.generate();
-
-
-
-	snake.draw(mctx);
-
-	mctx.clearRect(0, 0, cell_x*cell_size, cell_y*cell_size);
+	
 	g.drawBarriers(mctx, cell_size);
-	snake.draw(mctx);
+	apple.generate();
 	apple.draw(mctx);
-	snake.updateVMatrix();
-	console.log(snake.vmatrix);
-	console.log(g.matrix);
-	snake.drawVMatrix(vctx, vcell_size);
+	snake.draw(mctx);
+	snake.drawVMatrix(vctx)
 
 	drawGrid(mctx, cell_x, cell_y, cell_size);
 	drawGrid(vctx, vcell_x, vcell_y, vcell_size);
-	var gameLoop = setInterval(function () {
-		console.log("Game Loop");
-		clearTimeout(gameLoop);
-	}, 2000);
+	if (mode == "game")
+		startGameMode();
 
 	$(".direction").click(function () {
+		if ($(this).attr("data-direction") != "none")
+			vector = $(this).attr("data-direction");
 		mctx.clearRect(0, 0, cell_x*cell_size, cell_y*cell_size);
 		g.drawBarriers(mctx, cell_size);
-		snake.step( $(this).attr("data-direction") );
+		snake.step( vector );
 		snake.draw(mctx);
 		apple.draw(mctx);
 		snake.updateVMatrix();
-		console.log(snake.vmatrix);
-		console.log(g.matrix);
 		snake.drawVMatrix(vctx, vcell_size);
 		drawGrid(mctx, cell_x, cell_y, cell_size);
 		drawGrid(vctx, vcell_x, vcell_y, vcell_size);
-
 	});
 
-});
+	function startGameMode() {
+		$(document).on("keydown", function (e) {
+			pressed_key = e.keyCode;
+		});
+	
+		var gameLoop = setInterval(function () {
+			if (pressed_key == 27) 
+				clearTimeout(gameLoop);
+			
+			if (pressed_key == 37 && vector != "right")
+				vector = "left";
+			if (pressed_key == 38 && vector != "down")
+				vector = "top";
+			if (pressed_key == 39 && vector != "left")
+				vector = "right";
+			if (pressed_key == 40 && vector != "top")
+				vector = "down";
+			
+			// check coords and step
+			//Out of range
+			try {
+				snake.step( vector );
+				if (snake.body[0][0] > cell_x-1 || snake.body[0][0] < 0)
+				{
+					clearTimeout(gameLoop);
+					console.log("Game over. Out of range!");
+				}
+			} catch (error) {
+				clearTimeout(gameLoop);
+				console.log("Game over. Out of range!");
+			}
 
+			// Barriers
+			for (let i = 0; i < g.barriers.length; i++)
+			{
+				if (snake.body[0][0] == g.barriers[i][0] && snake.body[0][1] == g.barriers[i][1])
+				{
+					clearTimeout(gameLoop);
+					console.log("Game over. Barrier!");
+				}
+			}
+
+			// Apple
+			if (snake.body[0][0] == apple.x && snake.body[0][1] == apple.y)
+			{
+				apple.generate();
+				snake.append();
+			}
+
+			// Bump into snake body
+			for (let i = 1; i < snake.body.length; i++)
+				if (snake.body[0][0] == snake.body[i][0] && snake.body[0][1] == snake.body[i][1])
+				{
+					clearTimeout(gameLoop);
+					console.log("Game over. Your block!");
+				}	
+
+			drawScreen();
+		}, 100);
+	}
+
+	function drawScreen() {
+		mctx.clearRect(0, 0, cell_x*cell_size, cell_y*cell_size);
+		g.drawBarriers(mctx, cell_size);
+		snake.draw(mctx);
+		apple.draw(mctx);
+		snake.updateVMatrix();
+		g.drawBarriers(mctx, cell_size);
+		snake.drawVMatrix(vctx, vcell_size);
+		drawGrid(mctx, cell_x, cell_y, cell_size);
+		drawGrid(vctx, vcell_x, vcell_y, vcell_size);
+	}
+
+});
 
 function Apple(size, cell_x, cell_y, game) {
 	this.size 	= size;
@@ -93,7 +151,7 @@ function Apple(size, cell_x, cell_y, game) {
 		this.x = pair[r][1];
 		this.y = pair[r][0];
 		
-		game.updateGameField([pair[r]], 3);
+		game.updateGameField([[this.x, this.y]], 3);
 	}
 
 	this.draw = function (ctx) {
@@ -101,15 +159,12 @@ function Apple(size, cell_x, cell_y, game) {
 				this.color[0]+", "+
 				this.color[1]+", "+
 				this.color[2]+")";
-		ctx.fillRect(this.y*this.size, 
-					 this.x*this.size, 
+		ctx.fillRect(this.x*this.size, 
+					 this.y*this.size, 
 					 this.size, 
 					 this.size);
 	}
 }
-
-
-
 
 function Snake(visionR, game, cell_size) {
 	this.name 		= null;
@@ -118,10 +173,10 @@ function Snake(visionR, game, cell_size) {
 	this.body_color = [Math.round(Math.random() * 255), 
 				  	   Math.round(Math.random() * 255),
 				  	   Math.round(Math.random() * 255)];
-	this.cell_size = cell_size;
-	this.game = game;
-	this.visionR = visionR
-	this.vmatrix = new Array(visionR*2+1);
+	this.cell_size 	= cell_size;
+	this.game 		= game;
+	this.visionR 	= visionR
+	this.vmatrix 	= new Array(visionR*2+1);
 	
 	for (let i = 0; i < visionR*2+1; i++)
 		this.vmatrix[i] = new Array(visionR*2+1);
@@ -184,11 +239,6 @@ function Snake(visionR, game, cell_size) {
 				for (let j = 0; j < empty_right; j++)
 					this.vmatrix[i][this.visionR*2+1-j-1] = -1;
 		}
-
-		console.log(vx_top, vy_top, vx_bottom, vy_bottom);
-		console.log(mx_top, my_top, mx_bottom, my_bottom);
-
-		
 
 		for (let vi = vy_top, mi = my_top; vi <= vy_bottom; vi++, mi++)
 			for (let vj = vx_top, mj = mx_top; vj <= vx_bottom; vj++, mj++)
@@ -450,3 +500,17 @@ function closeSettings() {
 
 	$("#overlay").fadeOut(500);
 }
+
+function count(arr, x) {
+	var c = 0;
+	for (let i = 0; i < arr.length; i++)
+		if (arr[i] == x)
+			c++;
+	return c;
+}
+
+Array.prototype.unique = function() {
+	return this.filter(function (value, index, self) {
+		return self.indexOf(value) === index;
+	});
+};
