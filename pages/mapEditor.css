@@ -1,0 +1,60 @@
+.map-panel {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	flex-direction: column;
+}
+
+.map-panel > input[type=text] {
+	outline: none;
+	font-size: 1.2em;
+	padding: 8px 0px 5px 5px;
+	border: 1px solid silver;
+	border-radius: 5px;
+}
+
+.map-panel > button {
+	display: flex;
+	margin-top: 10px;
+	background-color: rgba(0, 0, 0, 0);
+	color: black;
+	font-size: 1.3em;
+	padding: 5px 10px;
+	border: 1px solid black;
+	border-radius: 5px;
+	outline: none;
+	transition: 0.2s;
+	
+}
+
+.map-panel > button:hover {
+	background-color: rgb(135, 255, 99);
+}
+
+
+.map-panel > button:active {
+	transform: scale(0.9);
+}
+
+.map-panel > button > i {
+	padding: 0 10px 0 0;
+}
+
+#back {
+	position: fixed;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	top: 10px;
+	left: 10px;
+	background: rgba(255, 255, 255, 0.8);
+	width: 50px;
+	height: 50px;
+	border-radius: 100%;
+	cursor: pointer;
+	user-select: none;
+}
+
+#back:hover {
+	background: rgba(255, 255, 255, 0.5)
+}

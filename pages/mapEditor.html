@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Snake</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="mapEditor.css">
+	<link rel="stylesheet" href="../libs/mdl/icon.css">
+	<script type="text/javascript" src="../libs/jquery-3.3.1.min.js"></script>
+	<script type="text/javascript" src="../libs/jquery-ui.min.js"></script>
+</head>
+<body>
+	<div id="wrapper"> 
+		<div id="main-block">
+			<div id="left-panel">
+				<canvas id="main-field"></canvas>
+			</div>
+			<div id="right-panel">
+                <div class="map-panel">
+                    
+                    <input type="text" id="save-inp" placeholder="Filename">
+                    <button id="save">
+                        <i class="material-icons">cloud_done</i>
+                        Save map
+                    </button>
+                </div>
+                <div class="map-panel">
+                    <input type="text" id="load-inp" placeholder="Filename">
+                    <button id="load">
+                        <i class="material-icons">cloud_download</i>
+                        Load map
+                    </button>
+                </div>
+			</div>
+		</div>
+    </div>
+    <div id="back">
+        <i class="material-icons">arrow_back</i>
+    </div>
+</body>
+<script src="../modules/snake.js"></script>
+<script src="mapEditor.js"></script>
+</html>
