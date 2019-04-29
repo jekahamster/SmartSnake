@@ -1,9 +1,27 @@
-var vector 			= "right";
+var vector 			= "right";									// left | top | right | down
 var pressed_key;
+var tmp_x, tmp_y;
 
 $(() => {
 	$("#settings-button").click(openSettings);
 	$("#overlay").click(closeSettings);
+
+	if ($(window).width() <= 450)
+	{
+		$("#vision-field").on("click", function (e) {
+			let x = e.pageX;
+			let y = e.pageY;
+			$("#settings-button").css({
+				"left": x - $("#settings-button").width()/2 + "px",
+				"top": y - $("#settings-button").width()/2 + "px",
+				"display": "flex",
+			});
+			$("#settings-button").trigger("click");
+			tmp_x = x;
+			tmp_y = y;
+		});
+	}
+
 	start();
 });
 
@@ -13,7 +31,9 @@ function start() {
 	var vcanvas 	= document.getElementById("vision-field");
 	var vctx 		= vcanvas.getContext('2d');
 	
-	var mode 		= "game";
+	var mode 		= "train"; 									// game | train
+	var step_delay 	= 150;
+
 	// main screen
 	var cell_x 		= 30;
 	var cell_y 		= 30;
@@ -43,20 +63,8 @@ function start() {
 	drawGrid(vctx, vcell_x, vcell_y, vcell_size);
 	if (mode == "game")
 		startGameMode();
-
-	$(".direction").click(function () {
-		if ($(this).attr("data-direction") != "none")
-			vector = $(this).attr("data-direction");
-		mctx.clearRect(0, 0, cell_x*cell_size, cell_y*cell_size);
-		g.drawBarriers(mctx, cell_size);
-		snake.step( vector );
-		snake.draw(mctx);
-		apple.draw(mctx);
-		snake.updateVMatrix();
-		snake.drawVMatrix(vctx, vcell_size);
-		drawGrid(mctx, cell_x, cell_y, cell_size);
-		drawGrid(vctx, vcell_x, vcell_y, vcell_size);
-	});
+	else if (mode == "train")
+		startTrainMode();
 
 	function startGameMode() {
 		var game = true;
@@ -84,7 +92,7 @@ function start() {
 				vector = "down";
 			
 			// check coords and step
-			//Out of range
+			// Out of range
 			try {
 				snake.step( vector );
 				if (snake.body[0][0] > cell_x-1 || snake.body[0][0] < 0)
@@ -131,7 +139,73 @@ function start() {
 				}	
 
 			drawScreen();
-		}, 100);
+		}, step_delay);
+	}
+
+	function startTrainMode() {
+		var game = true;
+		$(document).on("keydown", e=>{
+			let key_vector 	= ["left", "top", "right", "down"];
+			if (key_vector[e.keyCode-37]) 
+				vector = key_vector[e.keyCode-37];
+			else return;
+			
+			if (game)
+				game = move();
+		});
+
+		$(".direction").click(function () {
+			if ($(this).attr("data-direction") != "none")
+				vector = $(this).attr("data-direction");
+			
+			if (game) 
+				game = move();
+		});
+
+		function move() {
+			// check coords and step
+			// Out of range
+			try {
+				snake.step( vector );
+				if (snake.body[0][0] > cell_x-1 || snake.body[0][0] < 0)
+				{
+					console.log("Game over. Out of range!");
+					return false;
+				}
+			} catch (error) {
+				console.log("Game over. Out of range!");
+				return false;
+			}
+
+			// Barriers
+			for (let i = 0; i < g.barriers.length; i++)
+			{
+				if (snake.body[0][0] == g.barriers[i][0] && snake.body[0][1] == g.barriers[i][1])
+				{
+					console.log("Game over. Barrier!");
+					return false;
+				}
+			}
+
+			// Apple
+			if (snake.body[0][0] == apple.x && snake.body[0][1] == apple.y)
+			{
+				apple.generate();
+				snake.append();
+			}
+
+			// Bump into snake body
+			for (let i = 1; i < snake.body.length; i++)
+				if (snake.body[0][0] == snake.body[i][0] && snake.body[0][1] == snake.body[i][1])
+				{
+					console.log("Game over. Your block!");
+					return false;
+				}	
+
+			drawScreen();
+			return true;
+		}
+		
 	}
 
 	function drawScreen() {
@@ -174,15 +248,25 @@ function openSettings() {
 	if ($("#settings-window").width() > 0)
 		return;
 
+	let wins_w = 600;
+	let wins_h = 600;
+
+	if ($(window).width() <= 450)
+	{
+		wins_w = $(window).width();
+		wins_h = $(window).height();
+	}
+
 	let win_h = $(window).height();
 	let win_w = $(window).width();
+	
 	$(this).animate({
 		"top": win_h/2-$(this).height()/2+"px",
 		"left": win_w/2-$(this).width()/2+"px",
 	}, 300);
 	$("#settings-window").animate({
-		"height": "600px",
-		"width": "600px",
+		"height": wins_h + "px",
+		"width": wins_w + "px",
 	}, 500);
 	$("#overlay").fadeIn(500);
 	
@@ -196,11 +280,20 @@ function closeSettings() {
 	let win_w = $(window).width();
 	$("#settings-content").fadeOut(100);
 	setTimeout(function () {
-		$("#settings-button").animate({
-			"top": "10px",
-			"left": "10px",
+		if ($(window).width() <= 450)
+			$("#settings-button").animate({
+				"top": tmp_y - $("#settings-button").height()/2 + "px",
+				"left": tmp_x - $("#settings-button").width()/2 + "px",
 
-		}, 500);
+			}, 500, function () {
+				$("#settings-button").hide();
+			});
+		else
+			$("#settings-button").animate({
+				"top": "10px",
+				"left": "10px",
+
+			}, 500);
 		$("#settings-window").animate({
 			"height": "0px",
 			"width": "0px",
