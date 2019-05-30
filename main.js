@@ -1,6 +1,12 @@
-var vector 			= "right";									// left | top | right | down
+var vector = "right";									// left | top | right | down
 var pressed_key;
 var tmp_x, tmp_y;
+var objectValue = {
+	"apple": 3,
+	"body": 1,
+	"none": 0,
+	"border": -1,
+}
 
 $(() => {
 	$("#settings-button").click(openSettings);
@@ -26,9 +32,9 @@ $(() => {
 });
 
 function start() {
-	var mcanvas 	= document.getElementById("main-field");
+	var mcanvas 	= document.getElementById("main-field");	
 	var mctx 		= mcanvas.getContext('2d');
-	var vcanvas 	= document.getElementById("vision-field");
+	var vcanvas 	= document.getElementById("vision-field");	
 	var vctx 		= vcanvas.getContext('2d');
 	
 	var mode 		= "train"; 									// game | train
@@ -42,7 +48,7 @@ function start() {
 	mcanvas.height 	= cell_y*cell_size;
 
 	// vision screen
-	const visionR 	= 9;
+	const visionR 	= 20;
 	var vcell_x 	= visionR*2+1;
 	var vcell_y 	= visionR*2+1;
 	var vcell_size 	= 10;
@@ -165,6 +171,7 @@ function start() {
 		function move() {
 			// check coords and step
 			// Out of range
+			
 			try {
 				snake.step( vector );
 				if (snake.body[0][0] > cell_x-1 || snake.body[0][0] < 0)
@@ -203,6 +210,7 @@ function start() {
 				}	
 
 			drawScreen();
+			new InputCalculator().calc(snake.vmatrix, [visionR, visionR]);
 			return true;
 		}
 		
